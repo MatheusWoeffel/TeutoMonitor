@@ -2,8 +2,9 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.dialogs import Dialog
 
-from gui.realtime_graph import animate, RealTimeGraph, fig
+from gui.realtime_graph import RealTimeGraph
 import matplotlib.animation as animation
+from gui.animation import Animation, network_traffic_filler
 
 from models.agents import Agent
 from sqlalchemy.orm import Session
@@ -21,6 +22,10 @@ create_agent_form = [{
     "auth_password": {"title": "Auth password", "default": ""},
     "auth_protocol": {"title": "Auth protocol", "default": ""},
 }]
+
+traffic_animation = Animation("Network Traffic", ylabel="Bytes")
+graph_refresher = traffic_animation.create_animation(
+    network_traffic_filler)
 
 
 class CreateAgentDialog(Dialog):
@@ -87,7 +92,7 @@ class MainScreen(ttk.Frame):
         btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
 
         # graph
-        graph = RealTimeGraph(self)
+        graph = RealTimeGraph(self, traffic_animation.fig)
         graph.pack(fill=X, pady=1, side=TOP)
 
 
@@ -95,5 +100,8 @@ def start():
     app = ttk.Window(title="TeutoMonitor",
                      themename="superhero", minsize=(1280, 720))
     MainScreen(app)
-    ani = animation.FuncAnimation(fig, animate, interval=1000)
+
+    anim = animation.FuncAnimation(
+        traffic_animation.fig, graph_refresher, interval=1000)
+
     app.mainloop()
