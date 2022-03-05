@@ -1,6 +1,10 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.dialogs import Dialog
+
+from gui.realtime_graph import animate, RealTimeGraph, fig
+import matplotlib.animation as animation
+
 from models.agents import Agent
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
@@ -13,6 +17,7 @@ create_agent_form = [{
     "security_username": {"title": "Security username", "default": ""},
     "privacy_password": {"title": "Privacy password", "default": ""},
     "privacy_protocol": {"title": "Privacy protocol", "default": ""},
+}, {
     "auth_password": {"title": "Auth password", "default": ""},
     "auth_protocol": {"title": "Auth protocol", "default": ""},
 }]
@@ -25,7 +30,7 @@ class CreateAgentDialog(Dialog):
 
     def create_body(self, master):
         frame = ttk.Frame(master=master)
-        frame.pack(fill=X, pady=1, side=TOP)
+        frame.pack(fill=X, ipadx=10, ipady=10, side=TOP)
 
         self.entries = create_form(frame, create_agent_form)
 
@@ -33,7 +38,7 @@ class CreateAgentDialog(Dialog):
 
     def create_buttonbox(self, master):
         frame = ttk.Frame(master=master)
-        frame.pack(fill=X, pady=1, side=BOTTOM)
+        frame.pack(fill=X, pady=1, ipadx=10, ipady=10, side=BOTTOM)
 
         def on_click_save_agent():
             agent = Agent(
@@ -49,12 +54,15 @@ class CreateAgentDialog(Dialog):
             db = Session(engine)
             db.add(agent)
             db.commit()
+
+            self.destroy()
+
         btn = ttk.Button(
             master=master, text='Add agent',
             compound=LEFT,
             command=on_click_save_agent
         )
-        btn.pack(side=RIGHT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
+        btn.pack(side=RIGHT, ipadx=5, ipady=5, padx=(0, 15), pady=1)
         return btn
 
 
@@ -65,21 +73,27 @@ class MainScreen(ttk.Frame):
         self.pack(fill=BOTH, expand=YES)
 
         # buttonbar
-        buttonbar = ttk.Frame(self, style='primary.TFrame')
+        buttonbar = ttk.Frame(self, style='secondary.TFrame')
         buttonbar.pack(fill=X, pady=1, side=TOP)
 
-        # new backup
-
-        def _func(): return CreateAgentDialog(parent=self, title="adad").show()
+        # add agent button
+        def _func(): return CreateAgentDialog(parent=self, title="Add new agent").show()
         btn = ttk.Button(
             master=buttonbar, text='Add agent',
             compound=LEFT,
+            style='secondary',
             command=_func
         )
         btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
 
+        # graph
+        graph = RealTimeGraph(self)
+        graph.pack(fill=X, pady=1, side=TOP)
+
 
 def start():
-    app = ttk.Window(title="Back Me Up", themename="superhero")
+    app = ttk.Window(title="TeutoMonitor",
+                     themename="superhero", minsize=(1280, 720))
     MainScreen(app)
+    ani = animation.FuncAnimation(fig, animate, interval=1000)
     app.mainloop()
