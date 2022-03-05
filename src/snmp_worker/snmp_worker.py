@@ -52,7 +52,8 @@ def run_snmp_worker():
     agent_sessions = {}
     for agent in agents:
         snmp_session = snmp_session_for_agent(agent)
-        agent_sessions[agent.host_ip] = {"session": snmp_session,
+        agent_sessions[agent.host_ip] = {"agent": agent,
+                                         "session": snmp_session,
                                          "instance_name": snmp_session.get_instance_name(),
                                          "interfaces_count": snmp_session.get_interfaces_count()}
 
@@ -70,9 +71,11 @@ def run_snmp_worker():
                 agent_session["session"], agent_session["interfaces_count"])
 
             newInOctetsEntry = Measurement(
-                metric='ifInOctets', value=beforeValifInOctets[1])
+                metric='ifInOctets', value=beforeValifInOctets[1],
+                agent_id=agent_session["agent"].id)
             newOutOctetsEntry = Measurement(
-                metric='ifOutOctets', value=beforeValifOutOctets[1])
+                metric='ifOutOctets', value=beforeValifOutOctets[1],
+                agent_id=agent_session["agent"].id)
 
             db.add(newInOctetsEntry)
             db.add(newOutOctetsEntry)

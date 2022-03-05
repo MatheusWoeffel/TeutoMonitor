@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 import datetime
 from models.base import Base
 
@@ -14,6 +15,8 @@ class Agent(Base):
     auth_password = Column(String)
     auth_protocol = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    measurements = relationship("Measurement")
 
     def __repr__(self):
         return "<(Agent id='%i', host_ip=%s, snmp_version=%s, security_username=%s, privacy_password=%s, privacy_protocol=%s, auth_password=%s, auth_protocol=%s, created_at=%s)>" % (
