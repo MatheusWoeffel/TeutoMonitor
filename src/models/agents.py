@@ -15,7 +15,6 @@ class Agent(Base):
     auth_protocol = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-
-def __repr__(self):
-    return "<(Agent id='%i', host_ip=%s, snmp_version=%s, security_username=%s, privacy_password=%s, privacy_protocol=%s, auth_password=%s, auth_protocol=%s, timestamp=%s)>" % (
-        self.id, self.host_ip, self.snmp_version, self.security_username, self.privacy_password, self.privacy_protocol, self.auth_password, self.auth_protocol, self.timestamp)
+    def __repr__(self):
+        return "<(Agent id='%i', host_ip=%s, snmp_version=%s, security_username=%s, privacy_password=%s, privacy_protocol=%s, auth_password=%s, auth_protocol=%s, created_at=%s)>" % (
+            self.id, self.host_ip, self.snmp_version, self.security_username, self.privacy_password, self.privacy_protocol, self.auth_password, self.auth_protocol, self.created_at)

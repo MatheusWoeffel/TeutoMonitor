@@ -10,7 +10,6 @@ class Measurement(Base):
     metric = Column(String)
     value = Column(Integer)
 
-
-def __repr__(self):
-    return "<(Measurement id='%i', metric=%s, value=%s, time='%s')>" % (
-        self.id, self.metric, self.value, self.time)
+    def __repr__(self):
+        return "<(Measurement id='%i', metric=%s, value=%s, time='%s')>" % (
+            self.id, self.metric, self.value, self.timestamp)
