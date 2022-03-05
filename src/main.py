@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from snmp_worker import snmp_worker
+import gui.window as window
 
 
 def f(name):
@@ -7,6 +8,11 @@ def f(name):
 
 
 if __name__ == '__main__':
-    p = Process(target=snmp_worker.run_snmp_worker)
-    p.start()
-    p.join()
+    p_worker = Process(target=window.start)
+    p_window = Process(target=snmp_worker.run_snmp_worker)
+
+    p_window.start()
+    p_worker.start()
+
+    p_worker.join()
+    p_window.join()
