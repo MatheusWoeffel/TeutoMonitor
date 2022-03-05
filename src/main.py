@@ -8,8 +8,8 @@ def f(name):
 
 
 if __name__ == '__main__':
-    p_worker = Process(target=window.start)
-    p_window = Process(target=snmp_worker.run_snmp_worker)
+    p_window = Process(target=window.start)
+    p_worker = Process(target=snmp_worker.run_snmp_worker)
 
     p_window.start()
     p_worker.start()
