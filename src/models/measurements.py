@@ -1,8 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
+from models.base import Base
 import datetime
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
 
 
 class Measurement(Base):
