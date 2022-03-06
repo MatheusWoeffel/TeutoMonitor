@@ -14,7 +14,7 @@ class Animation():
         self.title = title
         self.ylabel = ylabel
 
-        self.fig = plt.figure()
+        self.fig = plt.figure(figsize=(4, 4))
         self.ax = self.fig.add_subplot(1, 1, 1)
 
         self.xs_dict = {}
@@ -34,12 +34,12 @@ class Animation():
                              self.ys_dict[key], label=key)
 
             # Format plot
-            plt.xticks(rotation=45, ha='right')
+            self.fig.suptitle(self.title)
+            self.ax.set_ylabel(self.ylabel)
             if len(self.xs_dict) > 0:
-                plt.legend(loc="upper left")
-            plt.subplots_adjust(bottom=0.30)
-            plt.title(self.title)
-            plt.ylabel(self.ylabel)
+                self.ax.legend(loc="upper left")
+            self.ax.tick_params(axis="x", rotation=45)
+            self.fig.subplots_adjust(bottom=0.30)
 
         return animate
 
@@ -48,16 +48,11 @@ engine = create_engine('sqlite:///db.sqlite3')
 db = Session(engine)
 
 
-def network_traffic_filler(xs_dict, ys_dict, xs_labels_dict):
+def base_network_traffic_filler(data, xs_dict, ys_dict, xs_labels_dict):
     agents = db.query(Agent).all()
     agents_by_id = {}
     for agent in agents:
         agents_by_id[agent.id] = agent
-
-    data = db.query(Measurement).order_by(Measurement.timestamp.desc()).filter(
-        Measurement.metric == 'ifInOctets').distinct(Measurement.timestamp).limit(100).all()
-
-    data = data[::-1]
 
     data_by_agent = {}
     for measure in data:
@@ -97,3 +92,19 @@ def network_traffic_filler(xs_dict, ys_dict, xs_labels_dict):
             xs_labels_dict[agent_key].append(
                 traffic['timestamp'].strftime('%H:%M:%S.%f'))
             ys_dict[agent_key].append(traffic['value'])
+
+
+def network_traffic_in_filler(xs_dict, ys_dict, xs_labels_dict):
+    data = db.query(Measurement).order_by(Measurement.timestamp.desc()).filter(
+        Measurement.metric == 'ifInOctets').distinct(Measurement.timestamp).limit(100).all()
+    data = data[::-1]
+
+    base_network_traffic_filler(data, xs_dict, ys_dict, xs_labels_dict)
+
+
+def network_traffic_out_filler(xs_dict, ys_dict, xs_labels_dict):
+    data = db.query(Measurement).order_by(Measurement.timestamp.desc()).filter(
+        Measurement.metric == 'ifOutOctets').distinct(Measurement.timestamp).limit(100).all()
+    data = data[::-1]
+
+    base_network_traffic_filler(data, xs_dict, ys_dict, xs_labels_dict)

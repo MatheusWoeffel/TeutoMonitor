@@ -4,7 +4,7 @@ from ttkbootstrap.dialogs import Dialog
 
 from gui.realtime_graph import RealTimeGraph
 import matplotlib.animation as animation
-from gui.animation import Animation, network_traffic_filler
+from gui.animation import Animation, network_traffic_in_filler, network_traffic_out_filler
 
 from models.agents import Agent
 from sqlalchemy.orm import Session
@@ -24,9 +24,15 @@ create_agent_form = [{
     "auth_protocol": {"title": "Auth protocol", "default": ""},
 }]
 
-traffic_animation = Animation("Network Traffic", ylabel="Traffic rate(Mbps)")
-graph_refresher = traffic_animation.create_animation(
-    network_traffic_filler)
+traffic_in_animation = Animation(
+    "Network In Traffic", ylabel="Traffic In Rate (MBps)")
+traffic_in_refresher = traffic_in_animation.create_animation(
+    network_traffic_in_filler)
+
+traffic_out_animation = Animation(
+    "Network Out Traffic", ylabel="Traffic Out Rate (MBps)")
+traffic_out_refresher = traffic_out_animation.create_animation(
+    network_traffic_out_filler)
 
 
 class CreateAgentDialog(Dialog):
@@ -149,8 +155,13 @@ class MainScreen(ttk.Frame):
         btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
 
         # graph
-        graph = RealTimeGraph(self, traffic_animation.fig)
-        graph.pack(fill=X, pady=1, side=TOP)
+        label = ttk.Label(self, text="Traffic monitoring",
+                          bootstyle="default", font=("", 20, "bold"))
+        label.pack(pady=10, padx=10)
+        graph_in = RealTimeGraph(self, traffic_in_animation.fig)
+        graph_in.pack(fill=X, pady=1, side=TOP)
+        graph_out = RealTimeGraph(self, traffic_out_animation.fig)
+        graph_out.pack(fill=X, pady=1, side=TOP)
 
 
 def start():
@@ -158,7 +169,10 @@ def start():
                      themename="superhero", minsize=(1280, 720))
     MainScreen(app)
 
-    anim = animation.FuncAnimation(
-        traffic_animation.fig, graph_refresher, interval=1000)
+    anim_in = animation.FuncAnimation(
+        traffic_in_animation.fig, traffic_in_refresher, interval=1000)
+
+    anim_out = animation.FuncAnimation(
+        traffic_out_animation.fig, traffic_out_refresher, interval=1000)
 
     app.mainloop()

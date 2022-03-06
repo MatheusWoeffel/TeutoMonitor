@@ -21,7 +21,6 @@ def get_new_agents(session):
     td = datetime.timedelta(seconds=MEASUREMENT_INTERVAL+1)
     now = datetime.datetime.utcnow()
     tmin = now - td
-    print(tmin, now)
     return session.query(Agent).filter(between(Agent.created_at, tmin, now)).all()
 
 

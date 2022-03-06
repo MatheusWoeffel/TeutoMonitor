@@ -7,8 +7,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 class RealTimeGraph(tk.Frame):
     def __init__(self, parent, fig):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Real time data")
-        label.pack(pady=10, padx=10)
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.draw()
