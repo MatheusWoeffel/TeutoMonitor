@@ -155,7 +155,7 @@ class MainScreen(ttk.Frame):
         btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
 
         # graph
-        label = ttk.Label(self, text="Traffic monitoring",
+        label = ttk.Label(self, text="Traffic Monitor",
                           bootstyle="default", font=("", 20, "bold"))
         label.pack(pady=10, padx=10)
         graph_in = RealTimeGraph(self, traffic_in_animation.fig)
