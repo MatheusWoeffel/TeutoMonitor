@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
+from models.agents import Agent
 from models.measurements import Measurement
 
 style.use('ggplot')
@@ -16,22 +17,26 @@ class Animation():
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(1, 1, 1)
 
-        self.xs = []
-        self.ys = []
-        self.xs_labels = []
+        self.xs_dict = {}
+        self.ys_dict = {}
+        self.xs_labels_dict = {}
 
     def create_animation(self, data_filler):
         def animate(i):
-            data_filler(self.xs, self.ys, self.xs_labels)
+            data_filler(self.xs_dict, self.ys_dict, self.xs_labels_dict)
 
-            # Draw x and y lists
             self.ax.clear()
-            if len(self.xs_labels) > 0:
-                self.ax.set_xticklabels(self.xs_labels)
-            self.ax.plot(self.xs, self.ys)
+            for key in self.xs_dict.keys():
+                if len(self.xs_labels_dict[key]) > 0:
+                    self.ax.set_xticklabels(self.xs_labels_dict[key])
+
+                self.ax.plot(self.xs_dict[key],
+                             self.ys_dict[key], label=key)
 
             # Format plot
             plt.xticks(rotation=45, ha='right')
+            if len(self.xs_dict) > 0:
+                plt.legend(loc="upper left")
             plt.subplots_adjust(bottom=0.30)
             plt.title(self.title)
             plt.ylabel(self.ylabel)
@@ -43,29 +48,52 @@ engine = create_engine('sqlite:///db.sqlite3')
 db = Session(engine)
 
 
-def network_traffic_filler(xs, ys, xs_labels):
-    data = db.query(Measurement).order_by(
-        Measurement.timestamp.desc()).filter(Measurement.metric == 'ifInOctets').distinct(Measurement.timestamp).limit(100).all()
+def network_traffic_filler(xs_dict, ys_dict, xs_labels_dict):
+    agents = db.query(Agent).all()
+    agents_by_id = {}
+    for agent in agents:
+        agents_by_id[agent.id] = agent
+
+    data = db.query(Measurement).order_by(Measurement.timestamp.desc()).filter(
+        Measurement.metric == 'ifInOctets').distinct(Measurement.timestamp).limit(100).all()
 
     data = data[::-1]
 
-    estimated_traffic = []
-    for i in range(1, len(data)):
-        currentPoint = data[i]
-        beforePoint = data[i - 1]
-        bitsIncrease = currentPoint.value - beforePoint.value
-        timeDifference = currentPoint.timestamp - beforePoint.timestamp
-        timeDifferenceInSeconds = timeDifference.microseconds / 1000000
+    data_by_agent = {}
+    for measure in data:
+        if measure.agent_id not in data_by_agent:
+            data_by_agent[measure.agent_id] = []
+        data_by_agent[measure.agent_id].append(measure)
 
-        estimated_traffic.append({
-            "value": (bitsIncrease / timeDifferenceInSeconds) / 1000000,
-            "timestamp": currentPoint.timestamp
-        })
+    estimated_traffic_by_agent = {}
+    for agent, measures in data_by_agent.items():
+        estimated_traffic_by_agent[agent] = []
+        for i in range(1, len(measures)):
+            currentPoint = measures[i]
+            beforePoint = measures[i - 1]
+            bytesIncrease = currentPoint.value - beforePoint.value
+            timeDifference = currentPoint.timestamp - beforePoint.timestamp
+            timeDifferenceInSeconds = timeDifference.microseconds / 1000000
 
-    xs.clear()
-    ys.clear()
-    xs_labels.clear()
-    for traffic in estimated_traffic:
-        xs.append(dates.date2num(traffic['timestamp']))
-        xs_labels.append(traffic['timestamp'].strftime('%H:%M:%S.%f'))
-        ys.append(traffic['value'])
+            estimated_traffic_by_agent[agent].append({
+                "value": (bytesIncrease / timeDifferenceInSeconds) / (1024*1024),
+                "timestamp": currentPoint.timestamp
+            })
+
+    xs_dict.clear()
+    ys_dict.clear()
+    xs_labels_dict.clear()
+
+    for agent, estimated_traffic in estimated_traffic_by_agent.items():
+        agent_key = agents_by_id[agent].host_ip
+        if agents_by_id[agent].snmp_version == 3:
+            agent_key = agents_by_id[agent].security_username + \
+                "@" + agents_by_id[agent].host_ip
+        xs_dict[agent_key] = []
+        ys_dict[agent_key] = []
+        xs_labels_dict[agent_key] = []
+        for traffic in estimated_traffic:
+            xs_dict[agent_key].append(dates.date2num(traffic['timestamp']))
+            xs_labels_dict[agent_key].append(
+                traffic['timestamp'].strftime('%H:%M:%S.%f'))
+            ys_dict[agent_key].append(traffic['value'])

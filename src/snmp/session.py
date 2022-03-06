@@ -18,7 +18,10 @@ class SNMPSession:
                 hostname=host_ip, community=community, version=snmp_version)
         elif self.snmp_version == 3:
             self._session = Session(
-                hostname=host_ip, community=community, version=snmp_version)
+                hostname=host_ip, version=snmp_version, security_level="auth_with_privacy",
+                security_username=security_username, privacy_password=privacy_password,
+                privacy_protocol=privacy_protocol, auth_password=auth_password,
+                auth_protocol=auth_protocol)
         else:
             self._session = None
 

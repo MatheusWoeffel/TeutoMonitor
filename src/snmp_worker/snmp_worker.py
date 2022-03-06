@@ -1,5 +1,7 @@
 import time
+import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import between
 from sqlalchemy import create_engine
 from models.base import Base
 from models.measurements import Measurement
@@ -13,6 +15,14 @@ MEASUREMENT_INTERVAL = 2
 
 def get_all_agents(session):
     return session.query(Agent).all()
+
+
+def get_new_agents(session):
+    td = datetime.timedelta(seconds=MEASUREMENT_INTERVAL+1)
+    now = datetime.datetime.utcnow()
+    tmin = now - td
+    print(tmin, now)
+    return session.query(Agent).filter(between(Agent.created_at, tmin, now)).all()
 
 
 def get_in_out_octets(snmp_session, numInterfaces):
@@ -50,8 +60,6 @@ def run_snmp_worker():
 
     agents = get_all_agents(db)
 
-    snmp_session = snmp_session_for_agent(agents[0])
-
     agent_sessions = {}
     for agent in agents:
         snmp_session = snmp_session_for_agent(agent)
@@ -64,6 +72,16 @@ def run_snmp_worker():
     while True:
         print("Round ", round)
         round += 1
+
+        new_agents = get_new_agents(db)
+        if len(new_agents) > 0:
+            for new_agent in new_agents:
+                if new_agent.host_ip not in agent_sessions:
+                    snmp_session = snmp_session_for_agent(new_agent)
+                    agent_sessions[new_agent.host_ip] = {"agent": new_agent,
+                                                         "session": snmp_session,
+                                                         "instance_name": snmp_session.get_instance_name(),
+                                                         "interfaces_count": snmp_session.get_interfaces_count()}
 
         for ip, agent_session in agent_sessions.items():
             print("> Monitoring IP:", ip)
