@@ -24,7 +24,7 @@ create_agent_form = [{
     "auth_protocol": {"title": "Auth protocol", "default": ""},
 }]
 
-traffic_animation = Animation("Network Traffic", ylabel="Bytes")
+traffic_animation = Animation("Network Traffic", ylabel="Traffic rate(Mbps)")
 graph_refresher = traffic_animation.create_animation(
     network_traffic_filler)
 
