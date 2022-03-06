@@ -16,14 +16,16 @@ def get_all_agents(session):
 
 
 def get_in_out_octets(snmp_session, numInterfaces):
+    queries = ['ifInOctets', 'ifOutOctets']
+    numQueries = len(queries)
     countBulk = snmp_session.session().get_bulk(
-        ['ifInOctets', 'ifOutOctets'], 0, numInterfaces)
+        queries, 0, numInterfaces)
     valifInOctets = {}
     valifOutOctets = {}
 
     for i in range(numInterfaces):
-        ifInOctets = countBulk[i*numInterfaces]
-        ifOutOctets = countBulk[i*numInterfaces + 1]
+        ifInOctets = countBulk[i*numQueries]
+        ifOutOctets = countBulk[i*numQueries + 1]
 
         valifInOctets[i] = int(ifInOctets.value)
         valifOutOctets[i] = int(ifOutOctets.value)
