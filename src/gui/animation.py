@@ -45,14 +45,27 @@ db = Session(engine)
 
 def network_traffic_filler(xs, ys, xs_labels):
     data = db.query(Measurement).order_by(
-        Measurement.timestamp.desc()).filter(Measurement.metric == 'ifInOctets').limit(100).all()
+        Measurement.timestamp.desc()).filter(Measurement.metric == 'ifInOctets').distinct(Measurement.timestamp).limit(100).all()
 
     data = data[::-1]
+
+    estimated_traffic = []
+    for i in range(1, len(data)):
+        currentPoint = data[i]
+        beforePoint = data[i - 1]
+        bitsIncrease = currentPoint.value - beforePoint.value
+        timeDifference = currentPoint.timestamp - beforePoint.timestamp
+        timeDifferenceInSeconds = timeDifference.microseconds / 1000000
+
+        estimated_traffic.append({
+            "value": (bitsIncrease / timeDifferenceInSeconds) / 1000000,
+            "timestamp": currentPoint.timestamp
+        })
 
     xs.clear()
     ys.clear()
     xs_labels.clear()
-    for measure in data:
-        xs.append(dates.date2num(measure.timestamp))
-        xs_labels.append(measure.timestamp.strftime('%H:%M:%S.%f'))
-        ys.append(measure.value)
+    for traffic in estimated_traffic:
+        xs.append(dates.date2num(traffic['timestamp']))
+        xs_labels.append(traffic['timestamp'].strftime('%H:%M:%S.%f'))
+        ys.append(traffic['value'])
