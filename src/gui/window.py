@@ -10,6 +10,7 @@ from models.agents import Agent
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from gui.form import create_entry_with_label, create_form
+from models.alert import Alert
 
 create_agent_form = [{
     "host_ip": {"title": "IP", "default": "0.0.0.0"},
@@ -71,6 +72,50 @@ class CreateAgentDialog(Dialog):
         return btn
 
 
+create_alert_form = [{
+    "metric": {"title": "Metric", "default": "ifInOctets"},
+    "increase_threshold": {"title": "Increase threshold", "default": "30000"}
+}]
+
+
+class CreateAlertDialog(Dialog):
+    def __init__(self, parent=None, title='', alert=False):
+        super().__init__(parent, title, alert)
+        self.entries = {}
+
+    def create_body(self, master):
+        frame = ttk.Frame(master=master)
+        frame.pack(fill=X, ipadx=10, ipady=10, side=TOP)
+
+        self.entries = create_form(frame, create_alert_form)
+
+        return frame
+
+    def create_buttonbox(self, master):
+        frame = ttk.Frame(master=master)
+        frame.pack(fill=X, pady=1, ipadx=10, ipady=10, side=BOTTOM)
+
+        def on_click_save_alert():
+            alert = Alert(
+                metric=self.entries["metric"].get(),
+                increase_threshold=self.entries["increase_threshold"].get(),
+            )
+            engine = create_engine('sqlite:///db.sqlite3')
+            db = Session(engine)
+            db.add(alert)
+            db.commit()
+
+            self.destroy()
+
+        btn = ttk.Button(
+            master=master, text='Add alert',
+            compound=LEFT,
+            command=on_click_save_alert
+        )
+        btn.pack(side=RIGHT, ipadx=5, ipady=5, padx=(0, 15), pady=1)
+        return btn
+
+
 class MainScreen(ttk.Frame):
 
     def __init__(self, *args, **kwargs):
@@ -82,12 +127,24 @@ class MainScreen(ttk.Frame):
         buttonbar.pack(fill=X, pady=1, side=TOP)
 
         # add agent button
-        def _func(): return CreateAgentDialog(parent=self, title="Add new agent").show()
+        def createAgentDialog(): return CreateAgentDialog(
+            parent=self, title="Add new agent").show()
         btn = ttk.Button(
             master=buttonbar, text='Add agent',
             compound=LEFT,
             style='secondary',
-            command=_func
+            command=createAgentDialog
+        )
+        btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
+
+        # add  alert button
+        def createAlertDialog(): return CreateAlertDialog(
+            parent=self, title="Add new Alert").show()
+        btn = ttk.Button(
+            master=buttonbar, text='Add Alert',
+            compound=LEFT,
+            style='secondary',
+            command=createAlertDialog
         )
         btn.pack(side=LEFT, ipadx=5, ipady=5, padx=(1, 0), pady=1)
 
