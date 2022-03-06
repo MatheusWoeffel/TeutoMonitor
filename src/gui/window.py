@@ -61,7 +61,7 @@ class CreateAgentDialog(Dialog):
             db.add(agent)
             db.commit()
 
-            self.destroy()
+            master.destroy()
 
         btn = ttk.Button(
             master=master, text='Add agent',
@@ -105,7 +105,7 @@ class CreateAlertDialog(Dialog):
             db.add(alert)
             db.commit()
 
-            self.destroy()
+            master.destroy()
 
         btn = ttk.Button(
             master=master, text='Add alert',
