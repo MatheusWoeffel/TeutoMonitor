@@ -1,7 +1,5 @@
 from datetime import datetime
-
-from paramiko import Agent
-
+from models.agents import Agent
 from models.alert import Alert
 from models.measurements import Measurement
 from snmp_worker.send_notification import send_notification
@@ -22,7 +20,7 @@ def process_alerts(session):
             ).filter(
                 Measurement.metric == alert.metric
             ).filter(
-                Measurement.agent_id == agent.agent_id
+                Measurement.agent_id == agent.id
             ).order_by(
                 Measurement.timestamp.desc()
             ).first()
@@ -32,7 +30,7 @@ def process_alerts(session):
             ).filter(
                 Measurement.metric == alert.metric
             ).filter(
-                Measurement.agent_id == agent.agent_id
+                Measurement.agent_id == agent.id
             ).order_by(
                 Measurement.timestamp.desc()
             ).first()
