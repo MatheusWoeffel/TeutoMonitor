@@ -9,7 +9,6 @@ from models.agents import Agent
 from snmp.session import SNMPSession
 from snmp_worker.process_alerts import process_alerts
 
-
 MEASUREMENT_INTERVAL = 2
 
 
@@ -27,6 +26,7 @@ def get_new_agents(session):
 def get_in_out_octets(snmp_session, numInterfaces):
     queries = ['ifInOctets', 'ifOutOctets']
     numQueries = len(queries)
+
     countBulk = snmp_session.session().get_bulk(
         queries, 0, numInterfaces)
     valifInOctets = {}
@@ -54,7 +54,6 @@ def snmp_session_for_agent(agent):
 def run_snmp_worker():
     engine = create_engine('sqlite:///db.sqlite3')
     db = Session(engine)
-    db.query
     Base.metadata.create_all(engine)
 
     agents = get_all_agents(db)

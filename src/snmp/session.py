@@ -29,7 +29,7 @@ class SNMPSession:
         return self._session
 
     def get_instance_name(self):
-        return self.session().get('sysName.0')
+        return self.session().get('sysName.0').value
 
     def get_interfaces_count(self):
         return int(self.session().get('ifNumber.0').value)
